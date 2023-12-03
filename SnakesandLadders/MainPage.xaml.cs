@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿
 using Microsoft.Maui.Controls.Shapes;
 
 namespace SnakesandLadders
@@ -21,19 +21,58 @@ namespace SnakesandLadders
         public bool NotRollingDice => !Rollingdice;
 
         const int DICE_DELAY = 250;
-        Color DICE_COLOR = Color.FromRgb(0, 195, 0);
+        Color DICE_COLOR = Color.FromRgb(150, 195, 0);
         Player player1;
+
+        private List<SnakeLadder> snakesladders;
 
         public MainPage() {
             InitializeComponent();
             SetUpGrid();
             InitRandomDice();
             InitialisePlayer();
+            MakeSnakesLadders();
             BindingContext = this;
+            this.LayoutChanged += OnWindowChange;
         }
 
+        private void OnWindowChange(object sender, EventArgs e) {
+            if (this.Width <= 0)
+                return;
+            if(this.Width < 480) {
+                int newdim = (int)this.Width / 10;
+                double rescale = (double)newdim * 10 / 480;
+                GridGameTable.Scale = rescale;
+            }
+        }
+
+        private void MakeSnakesLadders() {
+            snakesladders = new();
+            //  snakesladders.Add(new SnakeLadder(5, 3, 8, 3, "snake4x1.png", true, GridGameTable));
+            // snakesladders.Add(new SnakeLadder(2, 2, 4, 3, "snake2x2.png", true, GridGameTable));
+             snakesladders.Add(new SnakeLadder(6, 5, 4, 4, GridGameTable));
+             snakesladders.Add(new SnakeLadder(7, 5, 2, 2, GridGameTable));
+             snakesladders.Add(new SnakeLadder(3, 2, 3, 4, GridGameTable));
+           //  snakesladders.Add(new SnakeLadder(9, 8, 6 , 5, GridGameTable));
+             snakesladders.Add(new SnakeLadder(4, 0, 9, 9, GridGameTable));
+             snakesladders.Add(new SnakeLadder(5, 4, 9, 7, GridGameTable));
+             snakesladders.Add(new SnakeLadder(2, 4, 8, 6, GridGameTable));
+
+            //Snakes
+            snakesladders.Add(new SnakeLadder(0, 3, 4, 6, GridGameTable));
+            snakesladders.Add(new SnakeLadder(3, 6, 9, 7, GridGameTable));
+
+            snakesladders.Add(new SnakeLadder(2, 7, 6, 6, GridGameTable));
+            snakesladders.Add(new SnakeLadder(1, 4, 3, 3, GridGameTable));
+            snakesladders.Add(new SnakeLadder(5, 7, 4, 3, GridGameTable));
+            snakesladders.Add(new SnakeLadder(7, 9, 1, 2, GridGameTable));
+
+            snakesladders.Add(new SnakeLadder(7, 8, 6, 5, GridGameTable));
+            snakesladders.Add(new SnakeLadder(0, 1, 1, 2, GridGameTable));
+          //  snakesladders.Add(new SnakeLadder(2, 6, 8, 4, GridGameTable));
+        }
         private void InitialisePlayer() {
-            player1 = new("Donny", PlayerPiece);
+            player1 = new("Donny", PlayerPiece, GridGameTable);
         }
 
         private void InitRandomDice() {
@@ -105,7 +144,8 @@ namespace SnakesandLadders
         }
 
         private async Task RollDiceUsingGrid() {
-            int howmany = random.Next(4, 10);
+            //int howmany = random.Next(4, 10);
+            int howmany = 1;
             int which = 0;
             int last = 0;
             for (int i = 0; i < howmany; ++i) {
@@ -114,37 +154,22 @@ namespace SnakesandLadders
                 do {
                     which = random.Next(1, 7);
                 } while (which == last);
+                which = 2;
                 last = which;
                 FillDiceGrid(which, DiceGrid);
                 await DiceBorder.RotateYTo(DiceBorder.RotationY + 90, DICE_DELAY / 2);
             }
-            await MovePiece(which, player1);
-        }
-
-        private async Task MovePiece(int amount, Player player) {
-            int direction;
-            double xStep = GridGameTable.Width / 10;
-            double yStep = GridGameTable.Height / 12;
-            for(int i=0; i<amount; ++i) {
-                int row = player.row;
-                if (row % 2 == 0)
-                    direction = -1;
-                else
-                    direction = 1;
-                if ( player.position % 10 != 0) {
-                    ++player.position;
-                    player.column = player.column + direction;
-                    await player.MoveHorizontally(xStep*direction);
-                }
-                else {
-                    ++player.position;
-                    --player.row;
-                    await player.MoveVertically(yStep);
+            which = 22;
+            await player1.MovePiece(which);
+            //See if it is on a snake or ladder 
+            foreach(var boardpiece in snakesladders) {
+                if (boardpiece.IsStartingPlace(player1.CurrentPosition[0], player1.CurrentPosition[1])) {
+                    await player1.MovePieceSnakeLadder(boardpiece.EndPosition);
+                    break;
                 }
             }
         }
-
-        
+   
         
 
 

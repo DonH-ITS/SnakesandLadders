@@ -4,40 +4,45 @@
              x:Class="SnakesandLadders.MainPage"
              Title="Snakes and Ladders">
     <ScrollView>
-    <Grid x:Name="GridGameTable" BackgroundColor="Blue" HorizontalOptions="Center" VerticalOptions="Center" HeightRequest="576" WidthRequest="480">
-        <Grid.RowDefinitions>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-        </Grid.ColumnDefinitions>
-        <!-- player piece -->
-        <Image x:Name="PlayerPiece" Source="player1.png" Grid.Row="9" Grid.Column="0" ZIndex="20" HorizontalOptions="Center"/>
+        <VerticalStackLayout>
+            <Grid x:Name="GridGameTable" BackgroundColor="Blue" HorizontalOptions="Center" VerticalOptions="Center" 
+          
+          HeightRequest="576" WidthRequest="480">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <!-- player piece -->
+            <Image x:Name="PlayerPiece" Source="player1.png" Grid.Row="9" Grid.Column="0" ZIndex="20" HorizontalOptions="Center"/>
 
 
+            <!--        <Image Source="drawing.png" Grid.Row="2" Grid.Column="3" Grid.ColumnSpan="1" Grid.RowSpan="3" ZIndex="10"/> -->
+            <!--   <Image Source="snake2.png" Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="5"  ZIndex="10" VerticalOptions="Fill" 
+                   HorizontalOptions="StartAndExpand" Aspect="Fill"/>-->
 
-
-        <Border StrokeThickness="2"
+            <Border StrokeThickness="2"
                 Scale="0.9"
                 x:Name="DiceBorder"
         StrokeShape="RoundRectangle 4,4,4,4"
@@ -46,24 +51,30 @@
         HorizontalOptions="Fill"
         VerticalOptions="Fill"
         Grid.Row="10" Grid.Column="1" Grid.RowSpan="2" Grid.ColumnSpan="2">
-            <Border.GestureRecognizers>
-                <TapGestureRecognizer Tapped="BtnDice_Clicked"/>
-            </Border.GestureRecognizers>
-            <Border.Stroke>
-                <LinearGradientBrush EndPoint="0,1">
-                    <GradientStop Color="Orange"
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="BtnDice_Clicked"/>
+                </Border.GestureRecognizers>
+                <Border.Stroke>
+                    <LinearGradientBrush EndPoint="0,1">
+                        <GradientStop Color="Orange"
                           Offset="0.1" />
-                    <GradientStop Color="Brown"
+                        <GradientStop Color="Brown"
                           Offset="1.0" />
-                </LinearGradientBrush>
-            </Border.Stroke>
-            <Grid x:Name="DiceGrid" ColumnDefinitions="*,*,*" RowDefinitions="*,*,*" Padding="2"/>
-        </Border>
+                    </LinearGradientBrush>
+                </Border.Stroke>
+                <Grid x:Name="DiceGrid" ColumnDefinitions="*,*,*" RowDefinitions="*,*,*" Padding="2"/>
+            </Border>
 
-        <Image x:Name="DiceImg"/>
-        <!--<Image x:Name="DiceImg" IsVisible="False" Grid.Row="10" Grid.Column="1" Grid.RowSpan="2" Grid.ColumnSpan="2" Source="dice1.png" Scale="0.9" HorizontalOptions="Center" VerticalOptions="Center" BackgroundColor="White"/>-->
-        <!-- buttons -->
-        <Button IsEnabled="{Binding NotRollingDice}" x:Name="BtnDice" Text="Roll" Grid.Row="11" Grid.Column="7" Grid.ColumnSpan="3" HorizontalOptions="Center" VerticalOptions="Center" Clicked="BtnDice_Clicked"/>
-    </Grid>
+            <Image x:Name="DiceImg"/>
+            <!--<Image x:Name="DiceImg" IsVisible="False" Grid.Row="10" Grid.Column="1" 
+        Grid.RowSpan="2" Grid.ColumnSpan="2" Source="dice1.png" Scale="0.9" HorizontalOptions="Center" 
+        VerticalOptions="Center" BackgroundColor="White"/>-->
+            <!-- buttons -->
+            <Button IsEnabled="{Binding NotRollingDice}" x:Name="BtnDice" 
+                Text="Roll" Grid.Row="11" Grid.Column="7" Grid.ColumnSpan="3" 
+                HorizontalOptions="Center" VerticalOptions="Center" Clicked="BtnDice_Clicked"/>
+        </Grid>
+            
+        </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
