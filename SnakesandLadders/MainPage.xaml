@@ -35,7 +35,8 @@
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
             <!-- player piece -->
-            <Image x:Name="PlayerPiece" Source="player1.png" Grid.Row="9" Grid.Column="0" ZIndex="20" HorizontalOptions="Center"/>
+            <Image x:Name="Player1Piece" Source="player1.png" Grid.Row="9" Grid.Column="0" ZIndex="20" HorizontalOptions="Center" IsVisible="false"/>
+            <Image x:Name="Player2Piece" Source="player2.png" Grid.Row="9" Grid.Column="0" ZIndex="20" HorizontalOptions="Center" IsVisible="false"/>
 
 
             <!--        <Image Source="drawing.png" Grid.Row="2" Grid.Column="3" Grid.ColumnSpan="1" Grid.RowSpan="3" ZIndex="10"/> -->
@@ -65,13 +66,12 @@
                 <Grid x:Name="DiceGrid" ColumnDefinitions="*,*,*" RowDefinitions="*,*,*" Padding="2"/>
             </Border>
 
-            <Image x:Name="DiceImg"/>
             <!--<Image x:Name="DiceImg" IsVisible="False" Grid.Row="10" Grid.Column="1" 
         Grid.RowSpan="2" Grid.ColumnSpan="2" Source="dice1.png" Scale="0.9" HorizontalOptions="Center" 
         VerticalOptions="Center" BackgroundColor="White"/>-->
             <!-- buttons -->
             <Button IsEnabled="{Binding NotRollingDice}" x:Name="BtnDice" 
-                Text="Roll" Grid.Row="11" Grid.Column="7" Grid.ColumnSpan="3" 
+                Text="Roll" Grid.Row="11" Grid.Column="8" Grid.ColumnSpan="2" 
                 HorizontalOptions="Center" VerticalOptions="Center" Clicked="BtnDice_Clicked"/>
         </Grid>
             

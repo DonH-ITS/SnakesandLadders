@@ -3,7 +3,7 @@
     public class Player
     {
         private int position;
-        private Grid grid;
+        static public Grid grid;
         private int row;
         private int column;
         public int[] CurrentPosition
@@ -20,13 +20,13 @@
         public string name { get; set; }
         private Image image;
 
-        public Player(string name, Image image, Grid grid) {
+        public Player(string name, Image image) {
             this.name = name;
             position = 1;
             row = 9;
             column = 0;
             this.image = image;
-            this.grid = grid;
+            image.IsVisible = true;
         }
 
         public async Task MovePiece(int amount) {

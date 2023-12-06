@@ -7,6 +7,12 @@ namespace SnakesandLadders
     {
         Random random;
         private bool rollingdice = false;
+        private List<SnakeLadder> snakesladdersList;
+        const int DICE_DELAY = 250;
+        Color DICE_COLOR = Color.FromRgb(150, 195, 0);
+        private List<Player> players;
+        private int playerTurn;
+        private int numberOfPlayers;
         public bool Rollingdice
         {
             get => rollingdice;
@@ -19,18 +25,11 @@ namespace SnakesandLadders
             }
         }
         public bool NotRollingDice => !Rollingdice;
-
-        const int DICE_DELAY = 250;
-        Color DICE_COLOR = Color.FromRgb(150, 195, 0);
-        Player player1;
-
-        private List<SnakeLadder> snakesladders;
-
         public MainPage() {
             InitializeComponent();
             SetUpGrid();
             InitRandomDice();
-            InitialisePlayer();
+            InitialisePlayers(2);
             MakeSnakesLadders();
             BindingContext = this;
             this.LayoutChanged += OnWindowChange;
@@ -47,32 +46,50 @@ namespace SnakesandLadders
         }
 
         private void MakeSnakesLadders() {
-            snakesladders = new();
-            //  snakesladders.Add(new SnakeLadder(5, 3, 8, 3, "snake4x1.png", true, GridGameTable));
-            // snakesladders.Add(new SnakeLadder(2, 2, 4, 3, "snake2x2.png", true, GridGameTable));
-             snakesladders.Add(new SnakeLadder(6, 5, 4, 4, GridGameTable));
-             snakesladders.Add(new SnakeLadder(7, 5, 2, 2, GridGameTable));
-             snakesladders.Add(new SnakeLadder(3, 2, 3, 4, GridGameTable));
-           //  snakesladders.Add(new SnakeLadder(9, 8, 6 , 5, GridGameTable));
-             snakesladders.Add(new SnakeLadder(4, 0, 9, 9, GridGameTable));
-             snakesladders.Add(new SnakeLadder(5, 4, 9, 7, GridGameTable));
-             snakesladders.Add(new SnakeLadder(2, 4, 8, 6, GridGameTable));
+            SnakeLadder.grid = GridGameTable;
+            snakesladdersList = new();
+           
+             snakesladdersList.Add(new SnakeLadder(6, 5, 4, 4));
+             snakesladdersList.Add(new SnakeLadder(7, 5, 2, 2));
+             snakesladdersList.Add(new SnakeLadder(3, 2, 3, 4));
+             snakesladdersList.Add(new SnakeLadder(4, 0, 9, 9));
+             snakesladdersList.Add(new SnakeLadder(5, 4, 9, 7));
+             snakesladdersList.Add(new SnakeLadder(2, 4, 8, 6));
 
             //Snakes
-            snakesladders.Add(new SnakeLadder(0, 3, 4, 6, GridGameTable));
-            snakesladders.Add(new SnakeLadder(3, 6, 9, 7, GridGameTable));
+            snakesladdersList.Add(new SnakeLadder(0, 3, 4, 6));
+            snakesladdersList.Add(new SnakeLadder(3, 6, 9, 7));
 
-            snakesladders.Add(new SnakeLadder(2, 7, 6, 6, GridGameTable));
-            snakesladders.Add(new SnakeLadder(1, 4, 3, 3, GridGameTable));
-            snakesladders.Add(new SnakeLadder(5, 7, 4, 3, GridGameTable));
-            snakesladders.Add(new SnakeLadder(7, 9, 1, 2, GridGameTable));
+            snakesladdersList.Add(new SnakeLadder(2, 7, 6, 6));
+            snakesladdersList.Add(new SnakeLadder(1, 4, 3, 3));
+            snakesladdersList.Add(new SnakeLadder(5, 7, 4, 3));
+            snakesladdersList.Add(new SnakeLadder(7, 9, 1, 2));
 
-            snakesladders.Add(new SnakeLadder(7, 8, 6, 5, GridGameTable));
-            snakesladders.Add(new SnakeLadder(0, 1, 1, 2, GridGameTable));
-          //  snakesladders.Add(new SnakeLadder(2, 6, 8, 4, GridGameTable));
+            snakesladdersList.Add(new SnakeLadder(7, 8, 6, 5));
+            snakesladdersList.Add(new SnakeLadder(0, 1, 1, 2));
+
+            snakesladdersList.Add(new SnakeLadder(9, 30));
+            snakesladdersList.Add(new SnakeLadder(25, 14));
+            snakesladdersList.Add(new SnakeLadder(80, 95));
+
+
         }
-        private void InitialisePlayer() {
-            player1 = new("Donny", PlayerPiece, GridGameTable);
+        private void InitialisePlayers(int howmany) {
+            Player.grid = GridGameTable;
+            players = new List<Player>();
+            Image plyimg = null;
+            for(int i=0; i<howmany; i++) {
+                switch (i) {
+                    case 0:
+                        plyimg = Player1Piece;
+                        break;
+                    case 1:
+                        plyimg = Player2Piece;
+                        break;
+                }
+                players.Add(new Player("Donny", plyimg));
+            }
+            numberOfPlayers = howmany;
         }
 
         private void InitRandomDice() {
@@ -144,33 +161,43 @@ namespace SnakesandLadders
         }
 
         private async Task RollDiceUsingGrid() {
-            //int howmany = random.Next(4, 10);
-            int howmany = 1;
+            int howmany = random.Next(4, 10);
             int which = 0;
             int last = 0;
+            int DiceBorderCurrentCol = Int32.Parse(DiceBorder.GetValue(Grid.ColumnProperty).ToString());
+            int DiceBorderSetCol = 0;
+            double xStep = GridGameTable.Width / 10;
+            if ( DiceBorderCurrentCol == 1){ 
+                DiceBorder.TranslateTo(xStep * 5.5, 0, (uint)howmany * DICE_DELAY);
+                DiceBorderSetCol = 6;
+            }
+            else {
+                DiceBorder.TranslateTo(-xStep * 5.5, 0, (uint)howmany * DICE_DELAY);
+                DiceBorderSetCol = 1;
+            }
+            DiceBorder.RotationY =  0;
             for (int i = 0; i < howmany; ++i) {
                 await DiceBorder.RotateYTo(DiceBorder.RotationY + 90, DICE_DELAY / 2);
                 ClearDiceGrid(DiceGrid);
                 do {
                     which = random.Next(1, 7);
                 } while (which == last);
-                which = 2;
                 last = which;
                 FillDiceGrid(which, DiceGrid);
                 await DiceBorder.RotateYTo(DiceBorder.RotationY + 90, DICE_DELAY / 2);
             }
-            which = 22;
-            await player1.MovePiece(which);
+            DiceBorder.TranslationX = 0;
+            DiceBorder.SetValue(Grid.ColumnProperty, DiceBorderSetCol);
+            await players[playerTurn].MovePiece(which);
             //See if it is on a snake or ladder 
-            foreach(var boardpiece in snakesladders) {
-                if (boardpiece.IsStartingPlace(player1.CurrentPosition[0], player1.CurrentPosition[1])) {
-                    await player1.MovePieceSnakeLadder(boardpiece.EndPosition);
+            foreach (var boardpiece in snakesladdersList) {
+                if (boardpiece.IsStartingPlace(players[playerTurn].CurrentPosition[0], players[playerTurn].CurrentPosition[1])) {
+                    await players[playerTurn].MovePieceSnakeLadder(boardpiece.EndPosition);
                     break;
                 }
             }
-        }
-   
-        
+            playerTurn = (playerTurn + 1) % numberOfPlayers;
+        }      
 
 
         private async Task RollDiceUsingImages() {

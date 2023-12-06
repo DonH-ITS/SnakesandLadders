@@ -58,7 +58,7 @@
 	  <None Remove="Resources\Images\ladder1.svg" />
 	  <None Remove="Resources\Images\ladder2.svg" />
 	  <None Remove="Resources\Images\player1.svg" />
-	  <None Remove="Resources\Images\playeryellow.svg" />
+	  <None Remove="Resources\Images\player2.svg" />
 	  <None Remove="Resources\Images\snake2x2.svg" />
 	  <None Remove="Resources\Splash\svg.svg" />
 	</ItemGroup>
