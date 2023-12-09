@@ -10,6 +10,8 @@ namespace SnakesandLadders
         private int EndCol;
         private Image image;
         static public Grid grid;
+        static public bool snakesmove;
+        private bool isSnake;
 
         public int[] EndPosition {
             get
@@ -131,6 +133,7 @@ namespace SnakesandLadders
                     image.SetValue(Grid.ColumnProperty, EndCol);
                 image.SetValue(Grid.ColumnSpanProperty, width);
             }
+            isSnake = false;
         }
 
         private void placesnakeonboard() {
@@ -138,28 +141,21 @@ namespace SnakesandLadders
             int height = Math.Abs(StartRow - EndRow) + 1;
             double step = grid.WidthRequest / 10;
             if (height == 4 && width == 3) {
-                place4x3snake(grid, step);
+                place4x3snake(step);
             }
             else if (height == 3 && width == 2) {
-                place3x2snake(grid, step);
+                place3x2snake(step);
             }
             else {
                 //Do a Straight One like a ladder
-                placeothersnake(grid, step, width, height);
+                placeothersnake(step, width, height);
             }
+            isSnake = true;
+            if(snakesmove)
+                StartSnakeMoving();
         }
-        
-        /*private void place1colsnake(Grid grid, double step, int height) {
-            CreateImage(height * (step), (step - 5), "snake1.png");
-            Random random = new Random();
-            int rotation = random.Next(2);
-            image.SetValue(Grid.ColumnProperty, StartCol);
-            image.SetValue(Grid.RowProperty, StartRow);
-            image.SetValue(Grid.RowSpanProperty, height);
-            image.RotationY = rotation * 180;
-        }*/
 
-        private void place4x3snake(Grid grid, double step) {
+        private void place4x3snake(double step) {
             CreateImage(4 * (step - 5), 3 * (step - 5), "snake3.png");
             if (StartCol < EndCol) {
                 image.SetValue(Grid.ColumnProperty, StartCol);
@@ -173,7 +169,7 @@ namespace SnakesandLadders
             image.SetValue(Grid.ColumnSpanProperty, 3);
         }
 
-        private void place3x2snake(Grid grid, double step) {
+        private void place3x2snake(double step) {
             CreateImage(3 * (step - 5), 2 * (step - 5), "snake2.png");
             if (StartCol < EndCol) {
                 image.SetValue(Grid.ColumnProperty, StartCol);
@@ -187,7 +183,7 @@ namespace SnakesandLadders
             image.SetValue(Grid.ColumnSpanProperty, 2);
         }
 
-        private void placeothersnake(Grid grid, double step, int width, int height) {
+        private void placeothersnake(double step, int width, int height) {
             //Pythagoras Theorem
             if(width == 1) {
                 CreateImage(step * height - 10, step - 10, "snake1.png");
@@ -214,10 +210,87 @@ namespace SnakesandLadders
         }
 
         public bool IsStartingPlace(int row, int col) {
-            if (row == StartRow && col == StartCol)
-                return true;
+            return (row == StartRow && col == StartCol);
+        }
+
+        private Animation animation;
+        private void StartSnakeMoving() {
+            Random random = new Random();
+            int translation = random.Next(2, 7);
+            image.TranslationY = -1*translation;
+            animation = new Animation{
+                {0, 0.5, new Animation(v => image.TranslationY = v, -1*translation, translation) },
+                {0.5, 1,new Animation(v => image.TranslationY = v, translation, -1*translation)  }
+            };
+            uint seconds = (uint)random.Next(1500, 6000);
+            animation.Commit(image, "SimpleAnimation", 16, seconds, Easing.Linear, (v, c) => image.TranslationY = -1*translation, () => true);
+        }
+
+        private void StopSnakeMoving() {
+            if(isSnake && animation != null) {
+                image.AbortAnimation("SimpleAnimation");
+            }
+        }
+
+        public void ChangeMovement() {
+            if (!isSnake)
+                return;
+            if (!snakesmove)
+                StopSnakeMoving();
             else
-                return false;
+                StartSnakeMoving();
+        }
+
+        public async void RandomMove() {
+            Random random = new Random();
+            int height = Math.Abs(StartRow - EndRow);
+            int startR, endR, startC, endC;
+            double translation = 0;
+            if (!isSnake) 
+            {
+                endR = random.Next(0, 10 - height);
+                startR = endR + height;
+                translation = endR - EndRow;
+            }
+            else {
+                if(snakesmove)
+                    StopSnakeMoving();
+                startR = random.Next(0, 10 - height);
+                endR = startR + height;
+                translation = startR - StartRow;
+            }
+            int width = Math.Abs(EndCol - StartCol);
+            double xtranslation = 0;
+            if(width == 0) {
+                startC = endC = random.Next(0, 10);
+                StartCol = startC;
+                xtranslation = endC - EndCol;
+            }
+            else if (StartCol < EndCol) { 
+                startC = random.Next(0, 10 - width);
+                endC = startC + width;
+                xtranslation = startC - StartCol;
+                
+            }
+            else {
+                endC = random.Next(0, 10 - width);
+                startC = endC + width;
+                xtranslation = endC - EndCol;
+            }
+            double yStep = grid.Height / 12;
+            double xStep = grid.Width / 10;
+            Console.Write(StartCol + EndCol + StartRow + EndRow + translation + xtranslation + startC + startR + endC + endR);
+            await image.TranslateTo(xStep*xtranslation, yStep * translation, 2000);
+            image.TranslationY = 0;
+            image.TranslationX = 0;
+            StartRow = startR;
+            EndRow = endR;
+            StartCol = startC;
+            EndCol = endC;
+            image.SetValue(Grid.RowProperty, isSnake ? StartRow : EndRow);
+            image.SetValue(Grid.ColumnProperty, StartCol < EndCol ? StartCol : EndCol);
+            if (snakesmove && isSnake)
+                StartSnakeMoving();
         }
 
 

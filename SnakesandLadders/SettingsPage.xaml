@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SnakesandLadders.SettingsPage"
+             Title="Settings Page"
+             xmlns:model="clr-namespace:SnakesandLadders"
+             xmlns:viewmodel="clr-namespace:SnakesandLadders"
+             x:DataType="viewmodel:Settings">
+    <VerticalStackLayout>
+        <Grid ColumnDefinitions="*,*" RowDefinitions="*,*,*,*,*,*,*,*">
+            <Label Text="Use Two Dice" Grid.Row="0" Grid.Column="0" HorizontalOptions="End"/>
+            <CheckBox IsChecked="{Binding TwoDice}" Grid.Column="1" HorizontalOptions="Start"/>
+            <Label Text="Grid Colour 1" Grid.Column="0" Grid.Row="1" HorizontalOptions="End"/>
+            <Entry Text="{Binding GRID_COLOUR1}" Grid.Column="1" Grid.Row="1" HorizontalOptions="Start"/>
+            <Label Text="Grid Colour 2" Grid.Column="0" Grid.Row="2" HorizontalOptions="End"/>
+            <Entry Text="{Binding GRID_COLOUR2}" Grid.Column="1" Grid.Row="2" HorizontalOptions="Start"/>
+            <Label Text="Dot Dice Colour" Grid.Column="0" Grid.Row="3" HorizontalOptions="End"/>
+            <Entry Text="{Binding DICE_COLOURFG}" Grid.Column="1" Grid.Row="3" HorizontalOptions="Start"/>
+            <Label Text="Dice Colour Background" Grid.Column="0" Grid.Row="4" HorizontalOptions="End"/>
+            <Entry Text="{Binding DICE_COLOURBG}" Grid.Column="1" Grid.Row="4" HorizontalOptions="Start"/>
+            <Label Text="Move Snakes" Grid.Row="5" Grid.Column="0" HorizontalOptions="End"/>
+            <CheckBox IsChecked="{Binding MoveSnakes}" Grid.Row="5" Grid.Column="1" HorizontalOptions="Start"/>
+            <Label Text="Finish Exactly on 100" Grid.Row="6" Grid.Column="0" HorizontalOptions="End"/>
+            <CheckBox IsChecked="{Binding Finish100}" Grid.Row="6" Grid.Column="1" HorizontalOptions="Start"/>
+            <Label Text="Snakes and Ladders Move Position" Grid.Row="7" Grid.Column="0" HorizontalOptions="End"/>
+            <HorizontalStackLayout Grid.Row="7" Grid.Column="1">
+                <Stepper Maximum="20" Value="{Binding SnakesLaddersChange}" />
+                <Label Text="{Binding SnakesLaddersChange}"/></HorizontalStackLayout>
+        </Grid>
+        <Button HorizontalOptions="Center" Text="Save" Clicked="SaveButton_Clicked" WidthRequest="150"/>
+    </VerticalStackLayout>
+</ContentPage>

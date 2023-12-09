@@ -3,41 +3,30 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="SnakesandLadders.MainPage"
              Title="Snakes and Ladders">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <Color x:Key="GridColour1">#0000AD</Color>
+            <Color x:Key="GridColour2">#FF0000</Color>
+            <Color x:Key="DiceFgColour">#000000</Color>
+            <Color x:Key="DiceBgColour">#FFFFFF</Color>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem IconImageSource="settings.png" Clicked="Settings_Clicked"/>
+    </ContentPage.ToolbarItems>
     <ScrollView>
         <VerticalStackLayout>
+            <Label x:Name="TopTextLbl" Text="{Binding TopText}" FontSize="20" WidthRequest="480" HorizontalOptions="Center"/>
             <Grid x:Name="GridGameTable" BackgroundColor="Blue" HorizontalOptions="Center" VerticalOptions="Center" 
           
-          HeightRequest="576" WidthRequest="480">
-            <Grid.RowDefinitions>
-                <RowDefinition/>
-                <RowDefinition/>
-                <RowDefinition/>
-                <RowDefinition/>
-                <RowDefinition/>
-                <RowDefinition/>
-                <RowDefinition/>
-                <RowDefinition/>
-                <RowDefinition/>
-                <RowDefinition/>
-                <RowDefinition/>
-                <RowDefinition/>
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
-            </Grid.ColumnDefinitions>
+          HeightRequest="576" WidthRequest="480" RowDefinitions="*,*,*,*,*,*,*,*,*,*,*,*" ColumnDefinitions="*,*,*,*,*,*,*,*,*,*">
+           
             <!-- player piece -->
-            <Image x:Name="Player1Piece" Source="player1.png" Grid.Row="9" Grid.Column="0" ZIndex="20" HorizontalOptions="Center" IsVisible="false"/>
+          <!--  <Image x:Name="Player1Piece" Source="player1.png" Grid.Row="9" Grid.Column="0" ZIndex="20" HorizontalOptions="Center" IsVisible="false"/>
             <Image x:Name="Player2Piece" Source="player2.png" Grid.Row="9" Grid.Column="0" ZIndex="20" HorizontalOptions="Center" IsVisible="false"/>
-
+-->
 
             <!--        <Image Source="drawing.png" Grid.Row="2" Grid.Column="3" Grid.ColumnSpan="1" Grid.RowSpan="3" ZIndex="10"/> -->
             <!--   <Image Source="snake2.png" Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="5"  ZIndex="10" VerticalOptions="Fill" 
@@ -47,11 +36,11 @@
                 Scale="0.9"
                 x:Name="DiceBorder"
         StrokeShape="RoundRectangle 4,4,4,4"
-        Background="#FFFFFF"
+        Background="{DynamicResource DiceBgColour}"
         Padding="1,1,1,1"
         HorizontalOptions="Fill"
         VerticalOptions="Fill"
-        Grid.Row="10" Grid.Column="1" Grid.RowSpan="2" Grid.ColumnSpan="2">
+        Grid.Row="10" Grid.Column="2" Grid.RowSpan="2" Grid.ColumnSpan="2">
                 <Border.GestureRecognizers>
                     <TapGestureRecognizer Tapped="BtnDice_Clicked"/>
                 </Border.GestureRecognizers>
@@ -66,15 +55,39 @@
                 <Grid x:Name="DiceGrid" ColumnDefinitions="*,*,*" RowDefinitions="*,*,*" Padding="2"/>
             </Border>
 
-            <!--<Image x:Name="DiceImg" IsVisible="False" Grid.Row="10" Grid.Column="1" 
+                <Border StrokeThickness="2"
+                        IsVisible="{Binding ShowTwoDice}"
+                            Scale="0.9"
+                            x:Name="DiceBorder2"
+                    StrokeShape="RoundRectangle 4,4,4,4"
+                    Background="{DynamicResource DiceBgColour}"
+                    Padding="1,1,1,1"
+                    HorizontalOptions="Fill"
+                    VerticalOptions="Fill"
+                    Grid.Row="10" Grid.Column="4" Grid.RowSpan="2" Grid.ColumnSpan="2">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="BtnDice_Clicked"/>
+                    </Border.GestureRecognizers>
+                    <Border.Stroke>
+                        <LinearGradientBrush EndPoint="0,1">
+                            <GradientStop Color="Orange"
+                  Offset="0.1" />
+                            <GradientStop Color="Brown"
+                  Offset="1.0" />
+                        </LinearGradientBrush>
+                    </Border.Stroke>
+                    <Grid x:Name="DiceGrid2" ColumnDefinitions="*,*,*" RowDefinitions="*,*,*" Padding="2"/>
+                </Border>
+
+                <!--<Image x:Name="DiceImg" IsVisible="False" Grid.Row="10" Grid.Column="1" 
         Grid.RowSpan="2" Grid.ColumnSpan="2" Source="dice1.png" Scale="0.9" HorizontalOptions="Center" 
         VerticalOptions="Center" BackgroundColor="White"/>-->
             <!-- buttons -->
-            <Button IsEnabled="{Binding NotRollingDice}" x:Name="BtnDice" 
+          <!--  <Button IsEnabled="{Binding NotRollingDice}" x:Name="BtnDice" 
                 Text="Roll" Grid.Row="11" Grid.Column="8" Grid.ColumnSpan="2" 
                 HorizontalOptions="Center" VerticalOptions="Center" Clicked="BtnDice_Clicked"/>
-        </Grid>
-            
+-->        </Grid>
+            <Button Text="New Game" WidthRequest="100" HorizontalOptions="Center" Clicked="NewGameButton_Clicked"/>
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

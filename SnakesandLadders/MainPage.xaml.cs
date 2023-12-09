@@ -1,5 +1,6 @@
-﻿
+﻿using System.Text.Json;
 using Microsoft.Maui.Controls.Shapes;
+using Plugin.Maui.Audio;
 
 namespace SnakesandLadders
 {
@@ -7,54 +8,166 @@ namespace SnakesandLadders
     {
         Random random;
         private bool rollingdice = false;
+        private int movingplayer = -1;
+        private bool movingsnladders = false;
+        private int winnerOfGame = -1;
         private List<SnakeLadder> snakesladdersList;
         const int DICE_DELAY = 250;
-        Color DICE_COLOR = Color.FromRgb(150, 195, 0);
         private List<Player> players;
         private int playerTurn;
         private int numberOfPlayers;
-        public bool Rollingdice
+        private Settings set;
+        private IAudioPlayer audioplayer;
+        private int countToChangeSnakes;
+        private double windowScale = 1.0;
+        private bool everythingInitialised = false;
+
+
+        public bool ShowTwoDice
+        {
+            get => set.TwoDice;
+            set
+            {
+                set.TwoDice = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private int WinnerGame
+        {
+            get => winnerOfGame;
+            set
+            {
+                if (winnerOfGame != value) {
+                    winnerOfGame = value;
+                    OnPropertyChanged(nameof(TopText));
+                }
+            }
+        }
+
+        private bool RollingDice
         {
             get => rollingdice;
             set
             {
-                if(rollingdice == value) return;
-                rollingdice = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(NotRollingDice));
+                if (rollingdice != value) {
+                    rollingdice = value;
+                    OnPropertyChanged(nameof(TopText));
+                }
             }
         }
-        public bool NotRollingDice => !Rollingdice;
+
+        private int MovingPlayer
+        {
+            get => movingplayer;
+            set
+            {
+                if (movingplayer != value) {
+                    movingplayer = value;
+                    OnPropertyChanged(nameof(TopText));
+                }
+            }
+        }
+
+        private bool MovingSnakesLadders
+        {
+            get => movingsnladders;
+            set
+            {
+                if (movingsnladders != value) {
+                    movingsnladders = value;
+                    OnPropertyChanged(nameof(TopText));
+                }
+            }
+        }
+
+        public string TopText
+        {
+            get
+            {
+                if (WinnerGame != -1)
+                    return "Well done " + players[playerTurn].name + " you have won!!\nIf you'd like to start again, click the New Game Button";
+                else if (MovingSnakesLadders)
+                    return "Please Wait, Moving Snakes and Ladders!!";
+                else if (MovingPlayer != -1)
+                    return "Moving " + players[playerTurn].name + " by " + MovingPlayer + " spaces";
+                else if (RollingDice)
+                    return "Rolling Dice, let's see what you get";
+                else
+                    return players[playerTurn].name + ", it's your go - Roll the Dice";
+            }
+        }
         public MainPage() {
             InitializeComponent();
+            this.LayoutChanged += OnWindowChange;
+            InitialiseObjectVariables();
+            BindingContext = this;
+        }
+
+        private async void InitialiseObjectVariables() {
+            string settingsfilename = System.IO.Path.Combine(FileSystem.Current.AppDataDirectory, "settings.json");
+            if (File.Exists(settingsfilename)) {
+                try {
+                    using (StreamReader reader = new StreamReader(settingsfilename)) {
+                        string jsonstring = reader.ReadToEnd();
+                        set = JsonSerializer.Deserialize<Settings>(jsonstring);
+                    }
+                }
+                catch {
+                    set = new Settings();
+                }
+            }
+            else
+                set = new Settings();
+            UpdateSettings();
             SetUpGrid();
             InitRandomDice();
-            InitialisePlayers(2);
+            WinnerGame = -1;
+            InitialisePlayers(Preferences.Default.Get("numberplayers", 2));
             MakeSnakesLadders();
-            BindingContext = this;
-            this.LayoutChanged += OnWindowChange;
+            audioplayer = AudioManager.Current.CreatePlayer(await FileSystem.OpenAppPackageFileAsync("dicerolling.mp3"));
+            everythingInitialised = true;
+        }
+
+        private void UpdateSettings() {
+            countToChangeSnakes = (set.SnakesLaddersChange == 0) ? -1 : set.SnakesLaddersChange;
+            ShowTwoDice = set.TwoDice;
+            Resources["GridColour1"] = Color.FromArgb(set.GRID_COLOUR1);
+            Resources["GridColour2"] = Color.FromArgb(set.GRID_COLOUR2);
+            Resources["DiceFgColour"] = Color.FromArgb(set.DICE_COLOURFG);
+            Resources["DiceBgColour"] = Color.FromArgb(set.DICE_COLOURBG);
+            if (set.MoveSnakes != SnakeLadder.snakesmove) {
+                SnakeLadder.snakesmove = set.MoveSnakes;
+                if (snakesladdersList != null) {
+                    foreach (var snake in snakesladdersList)
+                        snake.ChangeMovement();
+                }
+            }
         }
 
         private void OnWindowChange(object sender, EventArgs e) {
             if (this.Width <= 0)
                 return;
-            if(this.Width < 480) {
+            if (this.Width < 480) {
                 int newdim = (int)this.Width / 10;
                 double rescale = (double)newdim * 10 / 480;
                 GridGameTable.Scale = rescale;
+                TopTextLbl.WidthRequest = newdim * 10;
+                windowScale = rescale;
             }
         }
 
         private void MakeSnakesLadders() {
             SnakeLadder.grid = GridGameTable;
+            SnakeLadder.snakesmove = set.MoveSnakes;
             snakesladdersList = new();
-           
-             snakesladdersList.Add(new SnakeLadder(6, 5, 4, 4));
-             snakesladdersList.Add(new SnakeLadder(7, 5, 2, 2));
-             snakesladdersList.Add(new SnakeLadder(3, 2, 3, 4));
-             snakesladdersList.Add(new SnakeLadder(4, 0, 9, 9));
-             snakesladdersList.Add(new SnakeLadder(5, 4, 9, 7));
-             snakesladdersList.Add(new SnakeLadder(2, 4, 8, 6));
+
+            snakesladdersList.Add(new SnakeLadder(6, 5, 4, 4));
+            snakesladdersList.Add(new SnakeLadder(7, 5, 2, 2));
+            snakesladdersList.Add(new SnakeLadder(3, 2, 3, 4));
+            snakesladdersList.Add(new SnakeLadder(4, 0, 9, 9));
+            snakesladdersList.Add(new SnakeLadder(5, 4, 9, 7));
+            snakesladdersList.Add(new SnakeLadder(2, 4, 8, 6));
 
             //Snakes
             snakesladdersList.Add(new SnakeLadder(0, 3, 4, 6));
@@ -76,34 +189,29 @@ namespace SnakesandLadders
         }
         private void InitialisePlayers(int howmany) {
             Player.grid = GridGameTable;
+            Player.mustRoll100 = set.Finish100;
             players = new List<Player>();
-            Image plyimg = null;
-            for(int i=0; i<howmany; i++) {
-                switch (i) {
-                    case 0:
-                        plyimg = Player1Piece;
-                        break;
-                    case 1:
-                        plyimg = Player2Piece;
-                        break;
-                }
-                players.Add(new Player("Donny", plyimg));
+            playerTurn = 0;
+            string[] defaults = { "John", "Mary", "Luke", "Leia" };
+            for (int i = 0; i < howmany; i++) {
+                players.Add(new Player(Preferences.Default.Get("Player" + i, defaults[i]), i + 1));
             }
             numberOfPlayers = howmany;
         }
 
         private void InitRandomDice() {
             random = new();
-            FillDiceGrid(random.Next(1,7), DiceGrid);
+            FillDiceGrid(random.Next(1, 7), DiceGrid);
+            FillDiceGrid(random.Next(1, 7), DiceGrid2);
         }
 
         private Ellipse drawcircle() {
             Ellipse ell = new Ellipse()
             {
-                Fill = DICE_COLOR,
                 VerticalOptions = LayoutOptions.Center,
                 HorizontalOptions = LayoutOptions.Center
             };
+            ell.SetDynamicResource(Ellipse.FillProperty, "DiceFgColour");
             return ell;
         }
 
@@ -160,76 +268,174 @@ namespace SnakesandLadders
             }
         }
 
-        private async Task RollDiceUsingGrid() {
-            int howmany = random.Next(4, 10);
-            int which = 0;
-            int last = 0;
-            int DiceBorderCurrentCol = Int32.Parse(DiceBorder.GetValue(Grid.ColumnProperty).ToString());
+        private async Task AnimateRollingDice(int howmany, Border diceb, Grid diceg, int[] pattern) {
+
+            int DiceBorderCurrentCol = Int32.Parse(diceb.GetValue(Grid.ColumnProperty).ToString());
             int DiceBorderSetCol = 0;
             double xStep = GridGameTable.Width / 10;
-            if ( DiceBorderCurrentCol == 1){ 
-                DiceBorder.TranslateTo(xStep * 5.5, 0, (uint)howmany * DICE_DELAY);
-                DiceBorderSetCol = 6;
+            if (DiceBorderCurrentCol == 2 || DiceBorderCurrentCol == 4) {
+                diceb.TranslateTo(xStep * 4.5 * windowScale, 0, (uint)howmany * DICE_DELAY);
+                DiceBorderSetCol = 6 + DiceBorderCurrentCol - 2;
             }
             else {
-                DiceBorder.TranslateTo(-xStep * 5.5, 0, (uint)howmany * DICE_DELAY);
-                DiceBorderSetCol = 1;
+                diceb.TranslateTo(-xStep * 4.5 * windowScale, 0, (uint)howmany * DICE_DELAY);
+                DiceBorderSetCol = 2 + DiceBorderCurrentCol - 6;
             }
-            DiceBorder.RotationY =  0;
+            diceb.RotationY = 0;
             for (int i = 0; i < howmany; ++i) {
-                await DiceBorder.RotateYTo(DiceBorder.RotationY + 90, DICE_DELAY / 2);
-                ClearDiceGrid(DiceGrid);
+                await diceb.RotateYTo(diceb.RotationY + 90, DICE_DELAY / 2);
+                ClearDiceGrid(diceg);
+                FillDiceGrid(pattern[i], diceg);
+                await diceb.RotateYTo(diceb.RotationY + 90, DICE_DELAY / 2);
+            }
+            diceb.TranslationX = 0;
+            diceb.SetValue(Grid.ColumnProperty, DiceBorderSetCol);
+        }
+
+        private async Task RollDiceUsingGrid() {
+            int howmany = random.Next(4, 10);
+
+            int count = 0;
+            int which = 0;
+            int last = 0;
+            int[] pattern = new int[howmany];
+            for (int i = 0; i < howmany; i++) {
                 do {
                     which = random.Next(1, 7);
                 } while (which == last);
                 last = which;
-                FillDiceGrid(which, DiceGrid);
-                await DiceBorder.RotateYTo(DiceBorder.RotationY + 90, DICE_DELAY / 2);
+                pattern[i] = last;
             }
-            DiceBorder.TranslationX = 0;
-            DiceBorder.SetValue(Grid.ColumnProperty, DiceBorderSetCol);
-            await players[playerTurn].MovePiece(which);
+            count += which;
+            if (set.TwoDice) {
+                int[] pattern2 = new int[howmany];
+                for (int i = 0; i < howmany; i++) {
+                    do {
+                        which = random.Next(1, 7);
+                    } while (which == last);
+                    last = which;
+                    pattern2[i] = last;
+                }
+                AnimateRollingDice(howmany, DiceBorder2, DiceGrid2, pattern2);
+
+                count += which;
+            }
+            RollDiceSound();
+            await AnimateRollingDice(howmany, DiceBorder, DiceGrid, pattern);
+            
+            MovingPlayer = count;
+            int winner = await players[playerTurn].MovePiece(count);
+            if(winner == 1) {
+                WinnerGame = playerTurn;
+                MovingPlayer = -1;
+                return;
+            }
+            else if(winner == 2) {
+                await DisplayAlert("Must Land on 100", "Unlucky "+ players[playerTurn].name+", you rolled too large a number and went over 100. Better luck next time", "Got It");
+            }
             //See if it is on a snake or ladder 
-            foreach (var boardpiece in snakesladdersList) {
-                if (boardpiece.IsStartingPlace(players[playerTurn].CurrentPosition[0], players[playerTurn].CurrentPosition[1])) {
-                    await players[playerTurn].MovePieceSnakeLadder(boardpiece.EndPosition);
-                    break;
+            await CheckIfLandedOnSnakeLadder();
+
+            CheckIfMultiplePiecesOnSameSquare();
+            playerTurn = (playerTurn + 1) % numberOfPlayers;
+            MovingPlayer = -1;
+            if (countToChangeSnakes != -1) {
+                if (playerTurn == 0) {
+                    --countToChangeSnakes;
+                    if (countToChangeSnakes == 0) {
+                        await RandomlyMoveSnakesLadders();
+                        countToChangeSnakes = set.SnakesLaddersChange;
+                    }
                 }
             }
-            playerTurn = (playerTurn + 1) % numberOfPlayers;
-        }      
+        }
+
+        private async Task RandomlyMoveSnakesLadders() {
+            MovingSnakesLadders = true;
+            foreach (var boardpiece in snakesladdersList) {
+                boardpiece.RandomMove();
+            }
+            await Task.Delay(2000);
+            MovingSnakesLadders = false;
+        }
+
+        private async Task CheckIfLandedOnSnakeLadder() {
+            bool found = false;
+            do {
+                found = false;
+                foreach (var boardpiece in snakesladdersList) {
+                    if (boardpiece.IsStartingPlace(players[playerTurn].CurrentPosition[0], players[playerTurn].CurrentPosition[1])) {
+                        await players[playerTurn].MovePieceSnakeLadder(boardpiece.EndPosition);
+                        found = true;
+                        break;
+                    }
+                }
+            } while (found); //the while loop is in case you chain from a snake onto a ladder or vice-versa
+        }
+
+        private void CheckIfMultiplePiecesOnSameSquare() {
+            //See if there are more than one players in this spot
+            List<Player> plinpos = new List<Player>();
+            plinpos.Add(players[playerTurn]);
+            foreach (var player in players) {
+                if (player != players[playerTurn]) {
+                    if (player.CurrentPosition[0] == players[playerTurn].CurrentPosition[0] && player.CurrentPosition[1] == players[playerTurn].CurrentPosition[1]) {
+                        plinpos.Add(player);
+                    }
+                }
+            }
+            if (plinpos.Count > 1) {
+                for (int i = 0; i < plinpos.Count; i++) {
+                    if (i % 2 == 0) {
+                        if (i == 0)
+                            plinpos[i].moveplayerslightly(1.0);
+                        else if (i == 2)
+                            plinpos[i].moveplayerslightly(2.0);
+                    }
+                    else {
+                        if (i == 1)
+                            plinpos[i].moveplayerslightly(-1.0);
+                        else if (i == 3)
+                            plinpos[i].moveplayerslightly(-2.0);
+                    }
+                }
+            }
+        }
 
 
         private async Task RollDiceUsingImages() {
-         /*   int howmany = random.Next(4, 10);
-            int which = 0;
-            int last = 0;
-            for(int i= 0; i < howmany; ++i) {
-                await DiceImg.RotateYTo(DiceImg.RotationY+90, DICE_DELAY / 2);
-                do {
-                    which = random.Next(1, 7);
-                } while (which == last);
-                last = which;
-                DiceImg.Source = ImageSource.FromFile("dice" + which + ".png");
-                await DiceImg.RotateYTo(DiceImg.RotationY + 90, DICE_DELAY / 2);     
-            }
+            /*   int howmany = random.Next(4, 10);
+               int which = 0;
+               int last = 0;
+               for(int i= 0; i < howmany; ++i) {
+                   await DiceImg.RotateYTo(DiceImg.RotationY+90, DICE_DELAY / 2);
+                   do {
+                       which = random.Next(1, 7);
+                   } while (which == last);
+                   last = which;
+                   DiceImg.Source = ImageSource.FromFile("dice" + which + ".png");
+                   await DiceImg.RotateYTo(DiceImg.RotationY + 90, DICE_DELAY / 2);     
+               }
 
-            rollingdice = false;*/
+               rollingdice = false;*/
         }
 
         private async void BtnDice_Clicked(object sender, EventArgs e) {
-            if (Rollingdice)
+            if (WinnerGame != -1)
                 return;
-            Rollingdice = true;
+            if (RollingDice)
+                return;
+
+            RollingDice = true;
             await RollDiceUsingGrid();
             //await RollDiceUsingImages();
-            Rollingdice = false;
+            RollingDice = false;
         }
 
         private int whichnumber(int row, int column) {
             //Row 0 is the top, Row 9 is the bottom
             //Want 1-10 on bottom row, 91-100 on top
-            if( row % 2 == 1 ) {
+            if (row % 2 == 1) {
                 //Count from left to right
                 int start = (9 - row) * 10 + 1;
                 return start + column;
@@ -261,7 +467,6 @@ namespace SnakesandLadders
                                 new GradientStop { Color = Colors.Brown, Offset = 1.0f }
                             },
                         },
-                        Background = Color.FromArgb("#2B0B98"),
                         StrokeThickness = 2,
                         VerticalOptions = LayoutOptions.Fill,
                         HorizontalOptions = LayoutOptions.Fill,
@@ -273,21 +478,61 @@ namespace SnakesandLadders
                         Content = new Label
                         {
 
-                            Text = whichnumber(i,j).ToString(),
+                            Text = whichnumber(i, j).ToString(),
                             TextColor = Colors.White,
                             FontSize = 10,
                             FontAttributes = FontAttributes.Bold,
-                            HorizontalOptions = horizontalposition(i,j),
+                            HorizontalOptions = horizontalposition(i, j),
                             VerticalOptions = LayoutOptions.Start
                         }
                     };
+                    if (whichnumber(i, j) % 2 == 0)
+                        border.SetDynamicResource(Border.BackgroundProperty, "GridColour1");
+                    else
+                        border.SetDynamicResource(Border.BackgroundProperty, "GridColour2");
                     GridGameTable.Add(border, j, i);
                 }
             }
         }
 
-        private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e) {
 
+        private async void Settings_Clicked(object sender, EventArgs e) {
+            SettingsPage setpage = new SettingsPage(set);
+            setpage.GoingBackToMain += (s, data) =>
+            {
+                if (data) {
+                    UpdateSettings();
+                }
+            };
+            await Navigation.PushAsync(setpage);
+        }
+
+        private void RollDiceSound() {
+            audioplayer.Play();
+        }
+
+        private async void NewGameButton_Clicked(object sender, EventArgs e) {
+            if(WinnerGame == -1) {
+                bool answer = await DisplayAlert("Are you sure?", "Are you sure you want to start a new game?" , "Yes" , "No" ) ;
+                if (!answer)
+                    return;
+            }
+            await Shell.Current.GoToAsync("//WelcomePage", true);
+        }
+
+        private void ResetPlayersForNewGame() {
+            foreach (var player in players)
+                player.RemoveImage();
+            players.Clear();
+            InitialisePlayers(Preferences.Default.Get("numberplayers", 2));
+            WinnerGame = -1;
+        }
+
+        protected override void OnNavigatedTo(NavigatedToEventArgs args) {
+            if(everythingInitialised) {
+                ResetPlayersForNewGame();
+            }
+            base.OnNavigatedTo(args);
         }
     }
 }

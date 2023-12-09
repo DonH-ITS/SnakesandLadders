@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SnakesandLadders.WelcomePage"
+             Title="">
+    <ContentPage.Resources>
+        <x:Double x:Key="gridFont">15</x:Double>
+        
+    </ContentPage.Resources>
+    
+
+    <ScrollView>
+        <VerticalStackLayout HorizontalOptions="Center" Padding="5">
+            <Label 
+            Text="Welcome to Snakes and Ladders!"
+            VerticalOptions="Center" 
+            HorizontalOptions="Center" FontSize="30"/>
+            <Image Source="intro.png" HorizontalOptions="Center" VerticalOptions="Center" HeightRequest="250"/>
+
+            <HorizontalStackLayout>
+                <Label FontSize="14" Text="Select the Number of Players, then enter their names"/>
+                <Stepper x:Name="stepPlayers" Minimum="2" Maximum="4" Value="2" ValueChanged="stepPlayers_ValueChanged"/>
+            </HorizontalStackLayout>
+            <Label x:Name="noPlayersText"/>
+            <Grid x:Name="PlayerNameGrid" RowDefinitions="50,50,50,50" ColumnDefinitions="*,*,*">
+                <Image Source="player1.png" Grid.Row="0" Grid.Column="0"/>
+                <Label Text="Player 1 : " Grid.Row="0" Grid.Column="1" FontSize="{StaticResource gridFont}"/>
+                <Entry x:Name="player1Entry" MinimumWidthRequest="100" FontSize="{StaticResource gridFont}" Placeholder="Enter Name" Grid.Row="0" Grid.Column="2"/>
+                <Image Source="player2.png" Grid.Row="1" Grid.Column="0"/>
+                <Label Text="Player 2 : " Grid.Row="1" Grid.Column="1" FontSize="{StaticResource gridFont}"/>
+                <Entry x:Name="player2Entry" MinimumWidthRequest="100" FontSize="{StaticResource gridFont}" Placeholder="Enter Name" Grid.Row="1" Grid.Column="2"/>
+                <Image Source="player3.png" Grid.Row="2" Grid.Column="0"/>
+                <Label Text="Player 3 : " Grid.Row="2" Grid.Column="1" FontSize="{StaticResource gridFont}"/>
+                <Entry x:Name="player3Entry" MinimumWidthRequest="100" FontSize="{StaticResource gridFont}" Placeholder="Enter Name" Grid.Row="2" Grid.Column="2"/>
+                <Image Source="player4.png" Grid.Row="3" Grid.Column="0"/>
+                <Label Text="Player 4 : " Grid.Row="3" Grid.Column="1" FontSize="{StaticResource gridFont}"/>
+                <Entry x:Name="player4Entry" MinimumWidthRequest="100" FontSize="{StaticResource gridFont}" Placeholder="Enter Name" Grid.Row="3" Grid.Column="2"/>
+            </Grid>
+            <Button x:Name="PlayGame" Text="Play Game" Clicked="PlayGame_Clicked"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
