@@ -15,12 +15,12 @@
             Text="Welcome to Snakes and Ladders!"
             VerticalOptions="Center" 
             HorizontalOptions="Center" FontSize="30"/>
-            <Image Source="intro.png" HorizontalOptions="Center" VerticalOptions="Center" HeightRequest="250"/>
+            <Image Source="{AppThemeBinding Light=intro.png, Dark=introdark.png}" HorizontalOptions="Center" VerticalOptions="Center" HeightRequest="250"/>
 
-            <HorizontalStackLayout>
+            
                 <Label FontSize="14" Text="Select the Number of Players, then enter their names"/>
-                <Stepper x:Name="stepPlayers" Minimum="2" Maximum="4" Value="2" ValueChanged="stepPlayers_ValueChanged"/>
-            </HorizontalStackLayout>
+                <Stepper x:Name="stepPlayers" Minimum="2" Maximum="4" Value="2" ValueChanged="stepPlayers_ValueChanged" HorizontalOptions="Center"/>
+            
             <Label x:Name="noPlayersText"/>
             <Grid x:Name="PlayerNameGrid" RowDefinitions="50,50,50,50" ColumnDefinitions="*,*,*">
                 <Image Source="player1.png" Grid.Row="0" Grid.Column="0"/>

@@ -19,13 +19,34 @@ namespace SnakesandLadders
         private Settings set;
         private IAudioPlayer audioplayer;
         private int countToChangeSnakes;
-        private double windowScale = 1.0;
         private bool everythingInitialised = false;
+        private bool fromsettingspage = false;
+        private bool loadingpage = false;
+        private bool snakeshavemoved;
+
+        public bool LoadingPage
+        {
+            get => loadingpage;
+            set
+            {
+                loadingpage = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(EverythingLoaded));
+            }
+        }
+
+        public bool EverythingLoaded => !LoadingPage;
 
 
         public bool ShowTwoDice
         {
-            get => set.TwoDice;
+            get
+            {
+                if (set != null)
+                    return set.TwoDice;
+                else
+                    return false;
+            }
             set
             {
                 set.TwoDice = value;
@@ -85,6 +106,8 @@ namespace SnakesandLadders
         {
             get
             {
+                if (players == null || players.Count == 0)
+                    return "";
                 if (WinnerGame != -1)
                     return "Well done " + players[playerTurn].name + " you have won!!\nIf you'd like to start again, click the New Game Button";
                 else if (MovingSnakesLadders)
@@ -99,12 +122,12 @@ namespace SnakesandLadders
         }
         public MainPage() {
             InitializeComponent();
-            this.LayoutChanged += OnWindowChange;
-            InitialiseObjectVariables();
-            BindingContext = this;
+           // this.LayoutChanged += OnWindowChange;
+           // this.initTask =
+            
         }
 
-        private async void InitialiseObjectVariables() {
+        private async Task InitialiseObjectVariables() {
             string settingsfilename = System.IO.Path.Combine(FileSystem.Current.AppDataDirectory, "settings.json");
             if (File.Exists(settingsfilename)) {
                 try {
@@ -122,8 +145,7 @@ namespace SnakesandLadders
             UpdateSettings();
             SetUpGrid();
             InitRandomDice();
-            WinnerGame = -1;
-            InitialisePlayers(Preferences.Default.Get("numberplayers", 2));
+            
             MakeSnakesLadders();
             audioplayer = AudioManager.Current.CreatePlayer(await FileSystem.OpenAppPackageFileAsync("dicerolling.mp3"));
             everythingInitialised = true;
@@ -153,14 +175,21 @@ namespace SnakesandLadders
                 double rescale = (double)newdim * 10 / 480;
                 GridGameTable.Scale = rescale;
                 TopTextLbl.WidthRequest = newdim * 10;
-                windowScale = rescale;
+                //windowScale = rescale;
             }
         }
 
         private void MakeSnakesLadders() {
             SnakeLadder.grid = GridGameTable;
             SnakeLadder.snakesmove = set.MoveSnakes;
-            snakesladdersList = new();
+            if(snakesladdersList == null)
+                snakesladdersList = new();
+            else {
+                foreach(var piece in snakesladdersList) {
+                    piece.RemoveImage();
+                }
+                snakesladdersList.Clear();
+            }
 
             snakesladdersList.Add(new SnakeLadder(6, 5, 4, 4));
             snakesladdersList.Add(new SnakeLadder(7, 5, 2, 2));
@@ -184,6 +213,7 @@ namespace SnakesandLadders
             snakesladdersList.Add(new SnakeLadder(9, 30));
             snakesladdersList.Add(new SnakeLadder(25, 14));
             snakesladdersList.Add(new SnakeLadder(80, 95));
+            snakeshavemoved = false;
 
 
         }
@@ -272,13 +302,17 @@ namespace SnakesandLadders
 
             int DiceBorderCurrentCol = Int32.Parse(diceb.GetValue(Grid.ColumnProperty).ToString());
             int DiceBorderSetCol = 0;
-            double xStep = GridGameTable.Width / 10;
+            double xStep = GridGameTable.Width / 10.0;
+
+            //This translation works well on Windows but it is not quite right on Android
+            //Has a bit of stutter at the end. * 4.0 is better on Android but still a little off
+            double translation = (DeviceInfo.Current.Platform == DevicePlatform.Android) ? 4.0 : 4.5;
             if (DiceBorderCurrentCol == 2 || DiceBorderCurrentCol == 4) {
-                diceb.TranslateTo(xStep * 4.5 * windowScale, 0, (uint)howmany * DICE_DELAY);
+                diceb.TranslateTo(xStep * translation, 0, (uint)howmany * DICE_DELAY);
                 DiceBorderSetCol = 6 + DiceBorderCurrentCol - 2;
             }
             else {
-                diceb.TranslateTo(-xStep * 4.5 * windowScale, 0, (uint)howmany * DICE_DELAY);
+                diceb.TranslateTo(-xStep * translation, 0, (uint)howmany * DICE_DELAY);
                 DiceBorderSetCol = 2 + DiceBorderCurrentCol - 6;
             }
             diceb.RotationY = 0;
@@ -356,6 +390,7 @@ namespace SnakesandLadders
                 boardpiece.RandomMove();
             }
             await Task.Delay(2000);
+            snakeshavemoved = true;
             MovingSnakesLadders = false;
         }
 
@@ -453,6 +488,21 @@ namespace SnakesandLadders
         }
 
         private void SetUpGrid() {
+            if (Preferences.Default.Get("DeviceWidth", 480.0) < 480) {
+                int hello = (int)Preferences.Default.Get("DeviceWidth", 480.0) / 10;
+                GridGameTable.WidthRequest = hello * 10;
+                GridGameTable.HeightRequest = hello * 12;
+                TopTextLbl.WidthRequest = hello * 10;
+            }
+            else {
+                GridGameTable.WidthRequest = 480;
+                GridGameTable.HeightRequest = 576;
+                TopTextLbl.WidthRequest = 480;
+            }
+
+            // This is to adjust the margin on android devices to ensure the grid borders are touching
+            // Maybe can remove this in .NET Maui 8
+            int setmargin = (DeviceInfo.Current.Platform == DevicePlatform.Android) ? -2 : 0;                
             for (int i = 0; i < 10; ++i) {
                 for (int j = 0; j < 10; ++j) {
                     Border border = new Border
@@ -467,6 +517,7 @@ namespace SnakesandLadders
                                 new GradientStop { Color = Colors.Brown, Offset = 1.0f }
                             },
                         },
+                        Margin = setmargin,
                         StrokeThickness = 2,
                         VerticalOptions = LayoutOptions.Fill,
                         HorizontalOptions = LayoutOptions.Fill,
@@ -498,6 +549,7 @@ namespace SnakesandLadders
 
         private async void Settings_Clicked(object sender, EventArgs e) {
             SettingsPage setpage = new SettingsPage(set);
+            fromsettingspage = true;
             setpage.GoingBackToMain += (s, data) =>
             {
                 if (data) {
@@ -526,13 +578,33 @@ namespace SnakesandLadders
             players.Clear();
             InitialisePlayers(Preferences.Default.Get("numberplayers", 2));
             WinnerGame = -1;
+            if(snakeshavemoved)
+                MakeSnakesLadders();
         }
 
         protected override void OnNavigatedTo(NavigatedToEventArgs args) {
-            if(everythingInitialised) {
+            if(everythingInitialised && !fromsettingspage) {
                 ResetPlayersForNewGame();
             }
+            else if (fromsettingspage) {
+                fromsettingspage = false;
+            }
             base.OnNavigatedTo(args);
+        }
+
+        protected override async void OnAppearing() {
+            base.OnAppearing();
+            if (!everythingInitialised) {
+                Console.WriteLine(this.Width);
+                LoadingPage = true;
+                BindingContext = this;
+                await Task.Delay(500);
+                await InitialiseObjectVariables();
+                LoadingPage = false;
+                InitialisePlayers(Preferences.Default.Get("numberplayers", 2));
+                WinnerGame = 0;
+                WinnerGame = -1;
+            }
         }
     }
 }

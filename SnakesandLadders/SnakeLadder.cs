@@ -293,6 +293,17 @@ namespace SnakesandLadders
                 StartSnakeMoving();
         }
 
+        public void RedrawItem() {
+            if (snakesmove && isSnake)
+                StopSnakeMoving();
+            grid.Remove(image);
+            
+        }
+
+        public void RemoveImage() {
+            grid.Remove(image);
+        }
+
 
     }
 }
