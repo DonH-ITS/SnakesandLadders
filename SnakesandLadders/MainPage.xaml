@@ -20,7 +20,7 @@
         <ToolbarItem IconImageSource="{AppThemeBinding Light=settings.png, Dark=settingsdark.png}" Clicked="Settings_Clicked"/>
     </ContentPage.ToolbarItems>
     <ScrollView>
-        <VerticalStackLayout>
+        <VerticalStackLayout VerticalOptions="Start">
             <Label x:Name="TopTextLbl" Text="{Binding TopText}" FontSize="20" WidthRequest="480" HorizontalOptions="Center"/>
             <ActivityIndicator IsVisible="{Binding LoadingPage}"
                IsRunning="{Binding LoadingPage}"

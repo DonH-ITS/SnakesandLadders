@@ -279,7 +279,6 @@ namespace SnakesandLadders
             }
             double yStep = grid.Height / 12;
             double xStep = grid.Width / 10;
-            Console.Write(StartCol + EndCol + StartRow + EndRow + translation + xtranslation + startC + startR + endC + endR);
             await image.TranslateTo(xStep*xtranslation, yStep * translation, 2000);
             image.TranslationY = 0;
             image.TranslationX = 0;

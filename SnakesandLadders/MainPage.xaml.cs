@@ -167,7 +167,7 @@ namespace SnakesandLadders
             }
         }
 
-        private void OnWindowChange(object sender, EventArgs e) {
+    /*    private void OnWindowChange(object sender, EventArgs e) {
             if (this.Width <= 0)
                 return;
             if (this.Width < 480) {
@@ -177,7 +177,7 @@ namespace SnakesandLadders
                 TopTextLbl.WidthRequest = newdim * 10;
                 //windowScale = rescale;
             }
-        }
+        }*/
 
         private void MakeSnakesLadders() {
             SnakeLadder.grid = GridGameTable;
@@ -550,12 +550,6 @@ namespace SnakesandLadders
         private async void Settings_Clicked(object sender, EventArgs e) {
             SettingsPage setpage = new SettingsPage(set);
             fromsettingspage = true;
-            setpage.GoingBackToMain += (s, data) =>
-            {
-                if (data) {
-                    UpdateSettings();
-                }
-            };
             await Navigation.PushAsync(setpage);
         }
 
@@ -587,6 +581,7 @@ namespace SnakesandLadders
                 ResetPlayersForNewGame();
             }
             else if (fromsettingspage) {
+                UpdateSettings();
                 fromsettingspage = false;
             }
             base.OnNavigatedTo(args);
