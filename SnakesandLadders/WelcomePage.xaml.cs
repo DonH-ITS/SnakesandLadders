@@ -8,26 +8,23 @@ public partial class WelcomePage : ContentPage
 	{
 		InitializeComponent();
         numberplayers = Preferences.Default.Get("numberplayers",2);
-        noPlayersText.Text = stepPlayers.Value.ToString() + " players selected, enter their names";
-        HideSomeRows();
-        BindingContext = this;
+        UpdatePlayerNumber();
     }
 
     private void stepPlayers_ValueChanged(object sender, ValueChangedEventArgs e) {
-		noPlayersText.Text = stepPlayers.Value.ToString() +" players selected, enter their names";
+		
         numberplayers = (int)stepPlayers.Value;
-        HideSomeRows();
+        UpdatePlayerNumber();
     }
 
-    private void HideSomeRows() {
-        if (numberplayers == 4)
-            PlayerNameGrid.RowDefinitions[3].Height = 50;
-        else
-            PlayerNameGrid.RowDefinitions[3].Height = 0;
-        if (numberplayers >= 3)
-            PlayerNameGrid.RowDefinitions[2].Height = 50;
-        else
-            PlayerNameGrid.RowDefinitions[2].Height = 0;
+    private void UpdatePlayerNumber() {
+        noPlayersText.Text = stepPlayers.Value.ToString() + " players selected, enter their names";
+        for(int i=0; i<numberplayers; i++) {
+            PlayerNameGrid.RowDefinitions[i].Height = 50;
+        }
+        for(int j=numberplayers; j < 4; j++) {
+            PlayerNameGrid.RowDefinitions[j].Height = 0;
+        }
         PlayerNameGrid.HeightRequest = 50 * numberplayers;
     }
 

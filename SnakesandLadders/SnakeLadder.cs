@@ -9,9 +9,11 @@ namespace SnakesandLadders
         private int StartCol;
         private int EndCol;
         private Image image;
+        private bool isSnake;
+
         static public Grid grid;
         static public bool snakesmove;
-        private bool isSnake;
+        static public Random random;
 
         public int[] EndPosition {
             get
@@ -23,6 +25,9 @@ namespace SnakesandLadders
             }
         }
 
+
+        // Instead of giving the row/column numbers, just give the number of the board
+        // Have to convert from position to row/column which was messier than expected, maybe could be done more easily
         public SnakeLadder(int startPos, int endPos) {
             if (startPos == 100 || endPos == 100)
                 return;
@@ -90,7 +95,6 @@ namespace SnakesandLadders
         }
 
         private void placeladderonboard() {
-            Random random = new Random();
             int width = Math.Abs(StartCol - EndCol) + 1;
             int height = Math.Abs(StartRow - EndRow) + 1;
             double step = grid.WidthRequest / 10;
@@ -104,10 +108,6 @@ namespace SnakesandLadders
                     imageFile += "2";
                 imageFile += ".png";
                 CreateImage(height * (step), step, imageFile);
-                image.SetValue(Grid.RowProperty, EndRow);
-                image.SetValue(Grid.RowSpanProperty, height);
-                image.SetValue(Grid.ColumnProperty, StartCol);
-                image.SetValue(Grid.ColumnSpanProperty, 1);
             }
             else {
                 //Pythagoras Theorem
@@ -125,14 +125,15 @@ namespace SnakesandLadders
                 double radian = Math.Atan(tan);
                 double degrees = radian * 180 / Math.PI;
                 image.Rotation = degrees;
-                image.SetValue(Grid.RowProperty, EndRow);
-                image.SetValue(Grid.RowSpanProperty, height);
-                if( StartCol < EndCol)
-                    image.SetValue(Grid.ColumnProperty, StartCol);
-                else
-                    image.SetValue(Grid.ColumnProperty, EndCol);
-                image.SetValue(Grid.ColumnSpanProperty, width);
+
             }
+            image.SetValue(Grid.RowProperty, EndRow);
+            image.SetValue(Grid.RowSpanProperty, height);
+            if (StartCol < EndCol)
+                image.SetValue(Grid.ColumnProperty, StartCol);
+            else
+                image.SetValue(Grid.ColumnProperty, EndCol);
+            image.SetValue(Grid.ColumnSpanProperty, width);
             isSnake = false;
         }
 
@@ -183,13 +184,13 @@ namespace SnakesandLadders
             image.SetValue(Grid.ColumnSpanProperty, 2);
         }
 
-        private void placeothersnake(double step, int width, int height) {
-            //Pythagoras Theorem
+        private void placeothersnake(double step, int width, int height) {         
             if(width == 1) {
                 CreateImage(step * height - 10, step - 10, "snake1.png");
             }
             else
             {
+                //Pythagoras Theorem
                 double endHeight = Math.Sqrt(width * width + height * height);
                 CreateImage(endHeight * step - 20, step - 20, "snake1.png");
                 double direction = 1.0;
@@ -214,8 +215,9 @@ namespace SnakesandLadders
         }
 
         private Animation animation;
+
+        //The Snakes will move up and down a little bit. Use random numbers so each snake moves slightly differently
         private void StartSnakeMoving() {
-            Random random = new Random();
             int translation = random.Next(2, 7);
             image.TranslationY = -1*translation;
             animation = new Animation{
@@ -241,8 +243,8 @@ namespace SnakesandLadders
                 StartSnakeMoving();
         }
 
+        //Pick a Random Spot on the board for the snake/ladder
         public async void RandomMove() {
-            Random random = new Random();
             int height = Math.Abs(StartRow - EndRow);
             int startR, endR, startC, endC;
             double translation = 0;
@@ -300,6 +302,8 @@ namespace SnakesandLadders
         }
 
         public void RemoveImage() {
+            if (snakesmove && isSnake)
+                StopSnakeMoving();
             grid.Remove(image);
         }
 

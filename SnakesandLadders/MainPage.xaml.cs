@@ -37,7 +37,6 @@ namespace SnakesandLadders
 
         public bool EverythingLoaded => !LoadingPage;
 
-
         public bool ShowTwoDice
         {
             get
@@ -123,7 +122,8 @@ namespace SnakesandLadders
         public MainPage() {
             InitializeComponent();
            // this.LayoutChanged += OnWindowChange;
-           // this.initTask =
+
+            // All the main initialisation has been moved to OnAppearing so it appears more quickly
             
         }
 
@@ -167,6 +167,8 @@ namespace SnakesandLadders
             }
         }
 
+        
+        // We could do the resizing the window with this OnWindowChange - would work for Android too
     /*    private void OnWindowChange(object sender, EventArgs e) {
             if (this.Width <= 0)
                 return;
@@ -182,9 +184,11 @@ namespace SnakesandLadders
         private void MakeSnakesLadders() {
             SnakeLadder.grid = GridGameTable;
             SnakeLadder.snakesmove = set.MoveSnakes;
+            SnakeLadder.random = random;
             if(snakesladdersList == null)
                 snakesladdersList = new();
             else {
+                //Clear the previous snakes and ladders if they already exist
                 foreach(var piece in snakesladdersList) {
                     piece.RemoveImage();
                 }
@@ -236,6 +240,7 @@ namespace SnakesandLadders
         }
 
         private Ellipse drawcircle() {
+            // Draw the ellpise, use a dynamic resource so it can be changed in settings
             Ellipse ell = new Ellipse()
             {
                 VerticalOptions = LayoutOptions.Center,
@@ -333,6 +338,9 @@ namespace SnakesandLadders
             int which = 0;
             int last = 0;
             int[] pattern = new int[howmany];
+
+            // To get the animation to work, we need to figure out the pattern of the dice first before calling the Animation method
+            // This is because we can't wait for the animation to finish before getting the count of the dice
             for (int i = 0; i < howmany; i++) {
                 do {
                     which = random.Next(1, 7);
@@ -350,13 +358,15 @@ namespace SnakesandLadders
                     last = which;
                     pattern2[i] = last;
                 }
+                // If we are going to have two dice, we don't want to await the first one as we want it to run the same time as the second
                 AnimateRollingDice(howmany, DiceBorder2, DiceGrid2, pattern2);
-
                 count += which;
             }
             RollDiceSound();
             await AnimateRollingDice(howmany, DiceBorder, DiceGrid, pattern);
             
+
+
             MovingPlayer = count;
             int winner = await players[playerTurn].MovePiece(count);
             if(winner == 1) {
@@ -373,6 +383,8 @@ namespace SnakesandLadders
             CheckIfMultiplePiecesOnSameSquare();
             playerTurn = (playerTurn + 1) % numberOfPlayers;
             MovingPlayer = -1;
+
+            // If the option to move the snakes and ladders around at random is set, then do it when expected
             if (countToChangeSnakes != -1) {
                 if (playerTurn == 0) {
                     --countToChangeSnakes;
@@ -419,6 +431,8 @@ namespace SnakesandLadders
                     }
                 }
             }
+
+            // If there are multiple on the same spot, move each of them slightly so all can be seen
             if (plinpos.Count > 1) {
                 for (int i = 0; i < plinpos.Count; i++) {
                     if (i % 2 == 0) {
@@ -567,20 +581,28 @@ namespace SnakesandLadders
         }
 
         private void ResetPlayersForNewGame() {
+            // Remove all the player images from the grid first
             foreach (var player in players)
                 player.RemoveImage();
+
+            // Now redo all the player list for the new game
             players.Clear();
             InitialisePlayers(Preferences.Default.Get("numberplayers", 2));
             WinnerGame = -1;
+
+            // If the snakes and ladders have been moved randomly, put them in their initial spots for a new game
             if(snakeshavemoved)
                 MakeSnakesLadders();
         }
 
         protected override void OnNavigatedTo(NavigatedToEventArgs args) {
-            if(everythingInitialised && !fromsettingspage) {
+            //If the Navigation has come from the Welcome Page and the game has already started, reset the game
+            if (everythingInitialised && !fromsettingspage) {
+                
                 ResetPlayersForNewGame();
             }
             else if (fromsettingspage) {
+                //Update settings if navigated from the settings page
                 UpdateSettings();
                 fromsettingspage = false;
             }
@@ -590,13 +612,16 @@ namespace SnakesandLadders
         protected override async void OnAppearing() {
             base.OnAppearing();
             if (!everythingInitialised) {
-                Console.WriteLine(this.Width);
                 LoadingPage = true;
                 BindingContext = this;
+
+                // This Task Delay allows the page to display before initialising all the object variables
+                // This allows us to have an activity indicator while waiting for it to load
                 await Task.Delay(500);
                 await InitialiseObjectVariables();
                 LoadingPage = false;
                 InitialisePlayers(Preferences.Default.Get("numberplayers", 2));
+                // Do this to update the text display at the top
                 WinnerGame = 0;
                 WinnerGame = -1;
             }
