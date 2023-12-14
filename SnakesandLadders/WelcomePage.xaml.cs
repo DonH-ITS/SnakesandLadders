@@ -30,6 +30,9 @@ public partial class WelcomePage : ContentPage
     }
 
     private async void PlayGame_Clicked(object sender, EventArgs e) {
+        //The best way to transfer data from this page to another is making an object 
+        //and then making use of QueryProperty on the other page. (like DetailsPage on MonkeyMVVM)
+        //However Preferences.Default.Set will work enough for us here and well it's easier to program and explain
         Preferences.Default.Set("numberplayers", numberplayers);
         for (int i = 0; i < numberplayers; i++) {
             string thisname = "";
