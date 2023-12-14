@@ -44,8 +44,8 @@ public partial class WelcomePage : ContentPage
                 return;
             }
             Preferences.Default.Set("Player" + i, thisname);
-            Preferences.Default.Set("DeviceWidth", this.Width);
         }
+        Preferences.Default.Set("DeviceWidth", this.Width);
         await Shell.Current.GoToAsync("//MainPage", true);
     }
 
