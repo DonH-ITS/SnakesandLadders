@@ -154,6 +154,7 @@ namespace SnakesandLadders
         private void UpdateSettings() {
             countToChangeSnakes = (set.SnakesLaddersChange == 0) ? -1 : set.SnakesLaddersChange;
             ShowTwoDice = set.TwoDice;
+            Player.mustRoll100 = set.Finish100;
             Resources["GridColour1"] = Color.FromArgb(set.GRID_COLOUR1);
             Resources["GridColour2"] = Color.FromArgb(set.GRID_COLOUR2);
             Resources["DiceFgColour"] = Color.FromArgb(set.DICE_COLOURFG);
@@ -313,11 +314,11 @@ namespace SnakesandLadders
             //Has a bit of stutter at the end. * 4.0 is better on Android but still a little off
             double translation = (DeviceInfo.Current.Platform == DevicePlatform.Android) ? 4.0 : 4.5;
             if (DiceBorderCurrentCol == 2 || DiceBorderCurrentCol == 4) {
-                diceb.TranslateTo(xStep * translation, 0, (uint)howmany * DICE_DELAY);
+                _ = diceb.TranslateTo(xStep * translation, 0, (uint)howmany * DICE_DELAY);
                 DiceBorderSetCol = 6 + DiceBorderCurrentCol - 2;
             }
             else {
-                diceb.TranslateTo(-xStep * translation, 0, (uint)howmany * DICE_DELAY);
+                _ = diceb.TranslateTo(-xStep * translation, 0, (uint)howmany * DICE_DELAY);
                 DiceBorderSetCol = 2 + DiceBorderCurrentCol - 6;
             }
             diceb.RotationY = 0;
@@ -359,7 +360,7 @@ namespace SnakesandLadders
                     pattern2[i] = last;
                 }
                 // If we are going to have two dice, we don't want to await the first one as we want it to run the same time as the second
-                AnimateRollingDice(howmany, DiceBorder2, DiceGrid2, pattern2);
+                _ = AnimateRollingDice(howmany, DiceBorder2, DiceGrid2, pattern2);
                 count += which;
             }
             RollDiceSound();
@@ -401,6 +402,7 @@ namespace SnakesandLadders
             foreach (var boardpiece in snakesladdersList) {
                 boardpiece.RandomMove();
             }
+            //This Delay is so we wait for the snakes and ladders to complete their moving animation before moving on
             await Task.Delay(2000);
             snakeshavemoved = true;
             MovingSnakesLadders = false;
@@ -452,7 +454,7 @@ namespace SnakesandLadders
         }
 
 
-        private async Task RollDiceUsingImages() {
+        private void RollDiceUsingImages() {
             /*   int howmany = random.Next(4, 10);
                int which = 0;
                int last = 0;
