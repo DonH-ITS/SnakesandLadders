@@ -8,6 +8,7 @@ public partial class WelcomePage : ContentPage
 	{
 		InitializeComponent();
         numberplayers = Preferences.Default.Get("numberplayers",2);
+        stepPlayers.Value = numberplayers;
         UpdatePlayerNumber();
     }
 
